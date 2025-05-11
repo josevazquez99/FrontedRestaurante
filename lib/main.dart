@@ -6,6 +6,8 @@ import 'screens/register_screen.dart';
 import 'screens/productList_screen.dart';
 import 'screens/pago_screen.dart';
 import 'firebase_options.dart';
+import 'screens/editProduct_screen.dart';
+import 'screens/addProduct_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +28,13 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/productos': (context) => ProductListScreen(),
         '/pago': (context) => PagoScreen(total: 0),
+        '/editar':
+            (context) => EditProductScreen(
+              producto:
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>,
+            ),
+        '/crear': (context) => AddProductScreen(),
       },
     );
   }

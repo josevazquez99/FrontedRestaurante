@@ -14,12 +14,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
   bool _isLoading = true;
   List<dynamic> _carrito = [];
   int _carritoCount = 0;
+  String? _userRole;
 
   @override
   void initState() {
     super.initState();
     fetchProductos();
     cargarCarrito();
+    verificarRolUsuario();
+  }
+
+  Future<void> verificarRolUsuario() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userRole = prefs.getString('user_role');
+    });
   }
 
   Future<void> fetchProductos() async {
@@ -27,11 +36,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
       Uri.parse('http://localhost:3000/api/productos'),
       headers: {'Content-Type': 'application/json'},
     );
+    print(
+      "🔹 Datos recibidos desde el backend: ${response.body}",
+    ); // 🔍 Verifica la respuesta
 
     if (response.statusCode == 200) {
       final List<dynamic> productos = json.decode(response.body);
       setState(() {
-        _productos = productos;
+        _productos.clear();
+        _productos.addAll(productos);
         _isLoading = false;
       });
     } else {
@@ -45,16 +58,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final prefs = await SharedPreferences.getInstance();
     final carritoString = prefs.getString('carrito');
     if (carritoString != null) {
+      final carritoData = jsonDecode(carritoString);
       setState(() {
-        _carrito = jsonDecode(carritoString);
+        _carrito = carritoData;
         _carritoCount = _carrito.length;
+      });
+    } else {
+      setState(() {
+        _carrito = [];
+        _carritoCount =
+            0; //  Asegurar que el contador se reinicia correctamente
       });
     }
   }
 
   Future<void> guardarCarrito() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('carrito', jsonEncode(_carrito));
+    await prefs.setString('carrito', jsonEncode(_carrito));
+    setState(() {
+      _carritoCount = _carrito.length; //  Actualizar contador del carrito
+    });
   }
 
   Future<void> agregarAlCarrito(dynamic producto) async {
@@ -92,14 +115,57 @@ class _ProductListScreenState extends State<ProductListScreen> {
       }),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
       print("Producto agregado al carrito correctamente en el backend.");
     } else {
       print("Error al agregar producto al carrito: ${response.body}");
     }
   }
 
-  // 🔥 Función para cerrar sesión
+  Future<void> eliminarProducto(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('auth_token');
+
+    final response = await http.delete(
+      Uri.parse('http://localhost:3000/api/productos/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _productos.removeWhere((producto) => producto['id'] == id);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Producto eliminado correctamente')),
+      );
+    } else {
+      print("Error al eliminar producto: ${response.body}");
+    }
+  }
+
+  Future<void> editarProducto(dynamic producto) async {
+    final resultado = await Navigator.pushNamed(
+      context,
+      '/editar',
+      arguments: producto,
+    );
+
+    if (resultado == true) {
+      fetchProductos(); // 🔥 Recargar productos tras edición exitosa
+    }
+  }
+
+  Future<void> crearProducto() async {
+    final resultado = await Navigator.pushNamed(context, '/crear');
+
+    if (resultado == true) {
+      fetchProductos(); // 🔥 Recargar productos tras creación exitosa
+    }
+  }
+
   Future<void> logoutUser(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
@@ -107,7 +173,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
     print("Sesión cerrada correctamente");
 
-    // Redirigir a la pantalla de login
     Navigator.pushReplacementNamed(context, '/login');
   }
 
@@ -120,7 +185,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
         elevation: 0,
         actions: [
           GestureDetector(
-            onTap: () {
+            onTap: () async {
+              await cargarCarrito();
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -150,12 +216,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
             ),
           ),
-          //  Botón de logout
           IconButton(
             icon: Icon(Icons.logout),
-            onPressed: () {
-              logoutUser(context);
-            },
+            onPressed: () => logoutUser(context),
           ),
         ],
       ),
@@ -196,41 +259,44 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 5),
-                          Text(
-                            'Descripción: ${producto['descripcion'] ?? 'Sin descripción'}',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Precio: ${producto['precio']} €',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green[700],
-                            ),
-                          ),
-                        ],
+                      subtitle: Text(
+                        'Descripción: ${producto['descripcion'] ?? 'Sin descripción'}',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       ),
-                      trailing: IconButton(
-                        icon: Icon(
-                          Icons.add_shopping_cart,
-                          color: Colors.blueGrey,
-                        ),
-                        onPressed: () {
-                          agregarAlCarrito(producto);
-                        },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.add_shopping_cart,
+                              color: Colors.blueGrey,
+                            ),
+                            onPressed: () => agregarAlCarrito(producto),
+                          ),
+                          if (_userRole == 'administrador') ...[
+                            IconButton(
+                              icon: Icon(Icons.edit, color: Colors.orange),
+                              onPressed: () => editarProducto(producto),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => eliminarProducto(producto['id']),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   );
                 },
               ),
+      floatingActionButton:
+          _userRole == 'administrador'
+              ? FloatingActionButton(
+                backgroundColor: Colors.blueGrey,
+                child: Icon(Icons.add),
+                onPressed: crearProducto,
+              )
+              : null,
     );
   }
 }

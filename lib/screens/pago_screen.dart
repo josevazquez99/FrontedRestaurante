@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class PagoScreen extends StatefulWidget {
   final double total;
@@ -14,7 +16,64 @@ class PagoScreen extends StatefulWidget {
 class _PagoScreenState extends State<PagoScreen> {
   Future<void> limpiarCarrito() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.remove('carrito'); // 🔥 Borra el carrito tras el pago
+    prefs.remove('carrito'); //  Borra el carrito tras el pago
+  }
+
+  Future<String?> obtenerTokenDePreferencias() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("auth_token");
+  }
+
+  Future<void> crearPedido(BuildContext context) async {
+    String? token = await obtenerTokenDePreferencias();
+
+    if (token == null) {
+      mostrarMensaje(
+        context,
+        "No se encontró el token de autenticación",
+        false,
+      );
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final carritoString = prefs.getString('carrito');
+
+    if (carritoString == null) {
+      mostrarMensaje(context, "El carrito está vacío", false);
+      return;
+    }
+
+    final carrito = jsonDecode(carritoString);
+    final productos =
+        carrito.map((producto) {
+          return {
+            "producto_id": producto["id"] ?? 0,
+            "cantidad": producto["cantidad"] ?? 1,
+          };
+        }).toList();
+
+    print("Enviando pedido al backend con productos: $productos");
+
+    try {
+      final response = await http.post(
+        Uri.parse("http://localhost:3000/api/pedidos"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"productos": productos}),
+      );
+
+      if (response.statusCode == 201) {
+        mostrarMensaje(context, "Pedido creado con éxito!", true);
+      } else {
+        final errorData = jsonDecode(response.body);
+        mostrarMensaje(context, "Error: ${errorData['mensaje']}", false);
+      }
+    } catch (e) {
+      mostrarMensaje(context, "Error al conectar con el servidor", false);
+    }
   }
 
   void procesarPago() {
@@ -34,9 +93,13 @@ class _PagoScreenState extends State<PagoScreen> {
           ),
     );
 
-    Timer(Duration(seconds: 3), () {
+    Timer(Duration(seconds: 3), () async {
       Navigator.of(context).pop(); // Cierra el diálogo de carga
-      limpiarCarrito(); // 🔥 Limpia el carrito al finalizar pago
+
+      await crearPedido(
+        context,
+      ); //  Primero confirmamos el pedido en el backend
+      await limpiarCarrito(); //  Luego eliminamos el carrito
 
       showDialog(
         context: context,
@@ -49,9 +112,7 @@ class _PagoScreenState extends State<PagoScreen> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).popUntil(
-                      (route) => route.isFirst,
-                    ); // 🔥 Regresa a ProductListScreen
+                    Navigator.of(context).popUntil((route) => route.isFirst);
                   },
                   child: Text('Aceptar'),
                 ),
@@ -61,16 +122,21 @@ class _PagoScreenState extends State<PagoScreen> {
     });
   }
 
-  // 🔥 Función para cerrar sesión
   Future<void> logoutUser(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
     await prefs.remove('usuario_id');
 
-    print("Sesión cerrada correctamente");
-
-    // Redirigir a la pantalla de login
     Navigator.pushReplacementNamed(context, '/login');
+  }
+
+  void mostrarMensaje(BuildContext context, String mensaje, bool success) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje, style: TextStyle(color: Colors.white)),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
+    );
   }
 
   @override
@@ -80,7 +146,6 @@ class _PagoScreenState extends State<PagoScreen> {
         title: Text('Procesar Pago'),
         backgroundColor: Colors.blueGrey,
         actions: [
-          // 🔥 Botón de logout
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () {

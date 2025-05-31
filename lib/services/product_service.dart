@@ -2,7 +2,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ProductService {
-  final String apiUrl = 'http://localhost:3000/api/productos';
+  final String apiUrl =
+      'https://backendrestaurante-4elz.onrender.com/api/productos';
 
   Future<List<dynamic>> fetchProductos() async {
     final response = await http.get(Uri.parse(apiUrl));

@@ -8,6 +8,7 @@ import 'screens/pago_screen.dart';
 import 'firebase_options.dart';
 import 'screens/editProduct_screen.dart';
 import 'screens/addProduct_screen.dart';
+import 'screens/contact_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
         '/registro': (context) => RegisterScreen(),
         '/login': (context) => LoginScreen(),
         '/productos': (context) => ProductListScreen(),
+        '/contacto': (context) => ContactScreen(),
         '/pago': (context) => PagoScreen(total: 0),
         '/editar':
             (context) => EditProductScreen(

@@ -17,13 +17,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _precioController = TextEditingController();
-
+  final TextEditingController _categoriaController = TextEditingController();
   @override
   void initState() {
     super.initState();
     _nombreController.text = widget.producto['nombre'] ?? '';
     _descripcionController.text = widget.producto['descripcion'] ?? '';
     _precioController.text = widget.producto['precio'].toString();
+    _categoriaController.text = widget.producto['categoria'] ?? '';
   }
 
   Future<void> actualizarProducto() async {
@@ -31,7 +32,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
     String? token = prefs.getString('auth_token');
 
     final response = await http.put(
-      Uri.parse('http://localhost:3000/api/productos/${widget.producto['id']}'),
+      Uri.parse(
+        'https://backendrestaurante-4elz.onrender.com/api/productos/${widget.producto['id']}',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -40,6 +43,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         'nombre': _nombreController.text.trim(),
         'descripcion': _descripcionController.text.trim(),
         'precio': _precioController.text.trim(),
+        'categoria': _categoriaController.text.trim(),
       }),
     );
 
@@ -98,6 +102,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     "Precio",
                     Icons.attach_money,
                     isNumeric: true,
+                  ),
+                  SizedBox(height: 15),
+                  _buildTextField(
+                    _categoriaController,
+                    "Categoría",
+                    Icons.category,
                   ),
                   SizedBox(height: 25),
                   ElevatedButton(

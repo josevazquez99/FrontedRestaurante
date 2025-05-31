@@ -33,7 +33,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
 
       // ✅ Paso 2: Registrar en el backend
-      final url = 'http://localhost:3000/api/auth/registro';
+      final url =
+          'https://backendrestaurante-4elz.onrender.com/api/auth/registro';
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -91,7 +92,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Registro'), backgroundColor: Colors.blueGrey),
+      appBar: AppBar(
+        title: Text('Registro'),
+        backgroundColor: Colors.blueGrey,
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
@@ -223,7 +228,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         child: Text(
                           'Registrarse',
-                          style: TextStyle(fontSize: 18),
+                          style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                       ),
                       SizedBox(height: 20),

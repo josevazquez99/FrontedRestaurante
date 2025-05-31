@@ -60,7 +60,9 @@ class _CarritoScreenState extends State<CarritoScreen> {
 
     try {
       final response = await http.delete(
-        Uri.parse("http://localhost:3000/api/carrito/$productoId"),
+        Uri.parse(
+          "https://backendrestaurante-4elz.onrender.com/api/carrito/$productoId",
+        ),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json",
@@ -115,6 +117,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
       appBar: AppBar(
         title: Text("Carrito de Compras"),
         backgroundColor: Colors.blueGrey,
+        foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'carrito_screen.dart';
+import 'contact_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   @override
@@ -33,7 +34,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<void> fetchProductos() async {
     final response = await http.get(
-      Uri.parse('http://localhost:3000/api/productos'),
+      Uri.parse('https://backendrestaurante-4elz.onrender.com/api/productos'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -99,7 +100,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
 
     final response = await http.post(
-      Uri.parse('http://localhost:3000/api/carrito/crear'),
+      Uri.parse(
+        'https://backendrestaurante-4elz.onrender.com/api/carrito/crear',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -123,7 +126,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
     String? token = prefs.getString('auth_token');
 
     final response = await http.delete(
-      Uri.parse('http://localhost:3000/api/productos/$id'),
+      Uri.parse(
+        'https://backendrestaurante-4elz.onrender.com/api/productos/$id',
+      ),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -159,6 +164,69 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
     if (resultado == true) {
       fetchProductos();
+    }
+  }
+
+  Future<void> confirmarEliminacionResena(
+    BuildContext context,
+    int resenaId,
+    int productoId,
+  ) async {
+    final confirmacion = await showDialog<bool>(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: Text('¿Eliminar reseña?'),
+            content: Text('¿Estás seguro de que deseas eliminar esta reseña?'),
+            actions: [
+              TextButton(
+                child: Text('Cancelar'),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              ElevatedButton(
+                child: Text('Eliminar'),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmacion == true) {
+      await eliminarResena(resenaId, productoId);
+    }
+  }
+
+  Future<void> eliminarResena(int resenaId, int productoId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('auth_token');
+
+    if (token == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('No autorizado')));
+      return;
+    }
+
+    final response = await http.delete(
+      Uri.parse(
+        'https://backendrestaurante-4elz.onrender.com/api/resenas/$resenaId',
+      ),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Reseña eliminada con éxito')));
+      Navigator.pop(context);
+      mostrarResenas(productoId);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al eliminar reseña')));
     }
   }
 
@@ -218,7 +286,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 }
 
                 final response = await http.post(
-                  Uri.parse('http://localhost:3000/api/resenas'),
+                  Uri.parse(
+                    'https://backendrestaurante-4elz.onrender.com/api/resenas',
+                  ),
                   headers: {'Content-Type': 'application/json'},
                   body: jsonEncode({
                     'producto_id': productoId,
@@ -254,7 +324,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
       builder: (context) {
         return FutureBuilder<http.Response>(
           future: http.get(
-            Uri.parse('http://localhost:3000/api/resenas/producto/$productoId'),
+            Uri.parse(
+              'https://backendrestaurante-4elz.onrender.com/api/resenas/producto/$productoId',
+            ),
             headers: {'Content-Type': 'application/json'},
           ),
           builder: (context, snapshot) {
@@ -272,8 +344,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 content: Text('Error al cargar reseñas'),
                 actions: [
                   TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Cerrar')),
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Cerrar'),
+                  ),
                 ],
               );
             } else {
@@ -285,8 +358,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     content: Text('No hay reseñas para este producto.'),
                     actions: [
                       TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Cerrar')),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Cerrar'),
+                      ),
                     ],
                   );
                 } else {
@@ -303,16 +377,33 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           return ListTile(
                             leading: Icon(Icons.person),
                             title: Text(
-                                'Calificación: ${resena['calificacion']} ⭐'),
+                              'Calificación: ${resena['calificacion']} ⭐',
+                            ),
                             subtitle: Text(resena['comentario'] ?? ''),
-                            trailing: Text(
-                              resena['fecha'] != null
-                                  ? DateTime.parse(resena['fecha'])
-                                      .toLocal()
-                                      .toString()
-                                      .substring(0, 16)
-                                  : '',
-                              style: TextStyle(fontSize: 10),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  resena['fecha'] != null
+                                      ? DateTime.parse(
+                                        resena['fecha'],
+                                      ).toLocal().toString().substring(0, 16)
+                                      : '',
+                                  style: TextStyle(fontSize: 10),
+                                ),
+                                if (_userRole == 'administrador') ...[
+                                  SizedBox(width: 8),
+                                  IconButton(
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    onPressed:
+                                        () => confirmarEliminacionResena(
+                                          context,
+                                          resena['id'],
+                                          productoId,
+                                        ),
+                                  ),
+                                ],
+                              ],
                             ),
                           );
                         },
@@ -320,8 +411,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ),
                     actions: [
                       TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Cerrar')),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Cerrar'),
+                      ),
                     ],
                   );
                 }
@@ -331,8 +423,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   content: Text('Error al cargar reseñas'),
                   actions: [
                     TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text('Cerrar')),
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Cerrar'),
+                    ),
                   ],
                 );
               }
@@ -349,6 +442,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       appBar: AppBar(
         title: Text('Listado de Productos'),
         backgroundColor: Colors.blueGrey,
+        foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           GestureDetector(
@@ -384,97 +478,124 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
           IconButton(
+            icon: Icon(Icons.contact_mail),
+            tooltip: 'Contacto',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ContactScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: Icon(Icons.logout),
             onPressed: () => logoutUser(context),
           ),
         ],
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : _productos.isEmpty
+      body:
+          _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : _productos.isEmpty
               ? Center(
-                  child: Text(
-                    'No hay productos disponibles',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                )
-              : ListView.builder(
-                  padding: EdgeInsets.all(8),
-                  itemCount: _productos.length,
-                  itemBuilder: (context, index) {
-                    final producto = _productos[index];
-                    return Card(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 15,
-                          horizontal: 20,
-                        ),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blueGrey,
-                          child: Icon(Icons.shopping_cart, color: Colors.white),
-                        ),
-                        title: Text(
-                          producto['nombre'] ?? 'Sin nombre',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Text(
-                          'Descripción: ${producto['descripcion'] ?? 'Sin descripción'}',
-                          style:
-                              TextStyle(color: Colors.grey[600], fontSize: 14),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.add_shopping_cart,
-                                  color: Colors.blueGrey),
-                              onPressed: () => agregarAlCarrito(producto),
-                            ),
-                            if (_userRole == 'cliente') ...[
-                              IconButton(
-                                icon: Icon(Icons.rate_review,
-                                    color: Colors.green),
-                                onPressed: () =>
-                                    mostrarFormularioResena(producto['id']),
-                              ),
-                            ],
-                            IconButton(
-                              icon: Icon(Icons.comment, color: Colors.purple),
-                              tooltip: 'Ver reseñas',
-                              onPressed: () => mostrarResenas(producto['id']),
-                            ),
-                            if (_userRole == 'administrador') ...[
-                              IconButton(
-                                icon: Icon(Icons.edit, color: Colors.orange),
-                                onPressed: () => editarProducto(producto),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
-                                onPressed: () =>
-                                    eliminarProducto(producto['id']),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                child: Text(
+                  'No hay productos disponibles',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
                 ),
-      floatingActionButton: _userRole == 'administrador'
-          ? FloatingActionButton(
-              backgroundColor: Colors.blueGrey,
-              child: Icon(Icons.add),
-              onPressed: crearProducto,
-            )
-          : null,
+              )
+              : ListView.builder(
+                padding: EdgeInsets.all(8),
+                itemCount: _productos.length,
+                itemBuilder: (context, index) {
+                  final producto = _productos[index];
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 15,
+                        horizontal: 20,
+                      ),
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blueGrey,
+                        child: Icon(Icons.shopping_cart, color: Colors.white),
+                      ),
+                      title: Text(
+                        producto['nombre'] ?? 'Sin nombre',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Descripción: ${producto['descripcion'] ?? 'Sin descripción'}',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.add_shopping_cart,
+                              color: Colors.blueGrey,
+                            ),
+                            onPressed: () => agregarAlCarrito(producto),
+                          ),
+                          if (_userRole == 'cliente') ...[
+                            IconButton(
+                              icon: Icon(
+                                Icons.rate_review,
+                                color: Colors.green,
+                              ),
+                              onPressed:
+                                  () => mostrarFormularioResena(producto['id']),
+                            ),
+                          ],
+                          IconButton(
+                            icon: Icon(Icons.comment, color: Colors.purple),
+                            tooltip: 'Ver reseñas',
+                            onPressed: () => mostrarResenas(producto['id']),
+                          ),
+                          if (_userRole == 'administrador') ...[
+                            IconButton(
+                              icon: Icon(Icons.edit, color: Colors.orange),
+                              onPressed: () => editarProducto(producto),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => eliminarProducto(producto['id']),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+      bottomNavigationBar: Container(
+        height: 50,
+        color: Colors.blueGrey.shade100,
+        alignment: Alignment.center,
+        child: Text(
+          '© 2025 Restaurante Vazquez Tapas. Todos los derechos reservados.',
+          style: TextStyle(
+            color: Colors.blueGrey.shade700,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      floatingActionButton:
+          _userRole == 'administrador'
+              ? FloatingActionButton(
+                backgroundColor: Colors.blueGrey,
+                child: Icon(Icons.add),
+                onPressed: crearProducto,
+              )
+              : null,
     );
   }
 }

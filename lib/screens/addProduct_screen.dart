@@ -20,7 +20,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     String? token = prefs.getString('auth_token');
 
     final response = await http.post(
-      Uri.parse('http://localhost:3000/api/productos'),
+      Uri.parse('https://backendrestaurante-4elz.onrender.com/api/productos'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

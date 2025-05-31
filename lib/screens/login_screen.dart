@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     final response = await http.post(
-      Uri.parse('http://localhost:3000/api/auth/login'),
+      Uri.parse('https://backendrestaurante-4elz.onrender.com/api/auth/login'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({'email': email, 'password': password}),
     );
@@ -92,6 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: Text('Iniciar Sesión'),
         backgroundColor: Colors.blueGrey,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -172,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: Text(
                           'Iniciar Sesión',
-                          style: TextStyle(fontSize: 18),
+                          style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                       ),
                       SizedBox(height: 20),

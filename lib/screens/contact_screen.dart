@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -19,13 +21,46 @@ class _ContactScreenState extends State<ContactScreen> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> sendEmail(String name, String message) async {
+    const serviceId = 'service_6gr2dpu';
+    const templateId = 'template_c63w4rm';
+    const publicKey = '_MmarVqR0eoQsZSwS';
+
+    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
+    final response = await http.post(
+      url,
+      headers: {
+        'origin': 'http://localhost',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'service_id': serviceId,
+        'template_id': templateId,
+        'user_id': publicKey,
+        'template_params': {
+          'name': 'Restaurante Vazquez', // fijo, quien recibe el mensaje
+          'user_name': name, // quien envía el mensaje
+          'user_message': message,
+        },
+      }),
+    );
+
+    if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mensaje enviado (simulado)')),
+        const SnackBar(content: Text('Mensaje enviado correctamente')),
       );
       _nameController.clear();
       _messageController.clear();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al enviar el mensaje: ${response.body}')),
+      );
+    }
+  }
+
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      sendEmail(_nameController.text.trim(), _messageController.text.trim());
     }
   }
 

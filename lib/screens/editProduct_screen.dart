@@ -64,73 +64,94 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Editar Producto'),
-        backgroundColor: Colors.blueGrey,
+        title: Text(
+          'Editar Producto',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueGrey.shade800, Colors.blueGrey.shade500],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
         child: Card(
-          elevation: 4,
+          elevation: 8,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Padding(
-            padding: EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(25.0),
             child: Form(
               key: _formKey,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     "Actualizar Producto",
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey,
+                      color: Colors.blueGrey.shade700,
                     ),
                   ),
+                  SizedBox(height: 30),
+                  _buildTextField(
+                    _nombreController,
+                    "Nombre del Producto",
+                    Icons.fastfood,
+                  ),
                   SizedBox(height: 20),
-                  _buildTextField(_nombreController, "Nombre", Icons.edit),
-                  SizedBox(height: 15),
                   _buildTextField(
                     _descripcionController,
-                    "Descripción",
+                    "Descripción Detallada",
                     Icons.description,
+                    maxLines: 3,
                   ),
-                  SizedBox(height: 15),
+                  SizedBox(height: 20),
                   _buildTextField(
                     _precioController,
-                    "Precio",
+                    "Precio (€)",
                     Icons.attach_money,
                     isNumeric: true,
                   ),
-                  SizedBox(height: 15),
+                  SizedBox(height: 20),
                   _buildTextField(
                     _categoriaController,
                     "Categoría",
                     Icons.category,
                   ),
-                  SizedBox(height: 25),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        actualizarProducto();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueGrey,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 50,
-                        vertical: 15,
+                  SizedBox(height: 40),
+                  Container(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          actualizarProducto();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal.shade500,
+                        padding: EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        elevation: 5,
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Actualizar',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      child: Text(
+                        'Guardar Cambios',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -148,18 +169,40 @@ class _EditProductScreenState extends State<EditProductScreen> {
     String label,
     IconData icon, {
     bool isNumeric = false,
+    int? maxLines = 1,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+      maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Colors.blueGrey),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        prefixIcon: Icon(icon, color: Colors.blueGrey.shade600),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Colors.blueGrey.shade50,
+        contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blueGrey.shade200, width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.teal.shade400, width: 2),
+        ),
       ),
-      validator: (value) => value!.isEmpty ? 'Ingresa un $label válido' : null,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Por favor ingresa un $label válido';
+        }
+        if (isNumeric && double.tryParse(value) == null) {
+          return 'Por favor ingresa un número válido';
+        }
+        return null;
+      },
     );
   }
 }

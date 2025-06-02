@@ -36,6 +36,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
 
   double calcularTotal() {
     return carrito.fold(0, (sum, producto) {
+      // Safely parse the price to a double before summing
       final precio = double.tryParse(producto['precio'].toString()) ?? 0.0;
       return sum + precio;
     });
@@ -115,63 +116,130 @@ class _CarritoScreenState extends State<CarritoScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Carrito de Compras"),
-        backgroundColor: Colors.blueGrey,
-        foregroundColor: Colors.white,
+        title: Text(
+          "Tu Carrito",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueGrey.shade800, Colors.blueGrey.shade500],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.white),
             onPressed: () {
               logoutUser(context);
             },
+            tooltip: 'Cerrar sesión',
           ),
         ],
       ),
       body:
           carrito.isEmpty
               ? Center(
-                child: Text(
-                  "Tu carrito está vacío",
-                  style: TextStyle(fontSize: 20, color: Colors.grey),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.remove_shopping_cart,
+                      size: 80,
+                      color: Colors.grey.shade400,
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      "Tu carrito está vacío",
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      "¡Añade algunos productos para empezar!",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
                 ),
               )
               : ListView.builder(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(12),
                 itemCount: carrito.length,
                 itemBuilder: (context, index) {
                   final producto = carrito[index];
+                  // Safely parse and format the price to avoid NoSuchMethodError
+                  final String precioText =
+                      (double.tryParse(producto['precio'].toString()) ?? 0.0)
+                          .toStringAsFixed(2);
                   return Card(
                     margin: EdgeInsets.symmetric(vertical: 8),
-                    elevation: 4,
+                    elevation: 6,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 15,
-                        horizontal: 20,
-                      ),
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blueGrey,
-                        child: Icon(Icons.shopping_cart, color: Colors.white),
-                      ),
-                      title: Text(
-                        producto["nombre"] ?? "Producto",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      subtitle: Text(
-                        "${producto["precio"]} €",
-                        style: TextStyle(fontSize: 16, color: Colors.green),
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          eliminarProducto(producto["id"]);
-                        },
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.teal.shade100,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.restaurant_menu,
+                              color: Colors.teal.shade700,
+                              size: 30,
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  producto["nombre"] ?? "Producto Desconocido",
+                                  style: TextStyle(
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blueGrey.shade800,
+                                  ),
+                                ),
+                                SizedBox(height: 5),
+                                Text(
+                                  "$precioText €", // Use the safely formatted price
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    color: Colors.green.shade700,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.delete_forever,
+                              color: Colors.red.shade600,
+                              size: 28,
+                            ),
+                            onPressed: () {
+                              eliminarProducto(producto["id"]);
+                            },
+                            tooltip: 'Eliminar del carrito',
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -179,30 +247,76 @@ class _CarritoScreenState extends State<CarritoScreen> {
               ),
       bottomNavigationBar:
           carrito.isNotEmpty
-              ? Padding(
-                padding: EdgeInsets.all(15),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green[700],
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => PagoScreen(total: calcularTotal()),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "Ir a Pagar (${total.toStringAsFixed(2)} €)",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+              ? Container(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 3,
+                      blurRadius: 7,
+                      offset: Offset(0, -3),
                     ),
-                  ),
+                  ],
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Total a Pagar:",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey.shade900,
+                          ),
+                        ),
+                        Text(
+                          "${total.toStringAsFixed(2)} €",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 15),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: Icon(Icons.payment, color: Colors.white),
+                        label: Text(
+                          'Proceder al Pago',
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal.shade600,
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 5,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PagoScreen(total: total),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               )
               : null,

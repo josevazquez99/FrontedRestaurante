@@ -47,13 +47,25 @@ class _ContactScreenState extends State<ContactScreen> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mensaje enviado correctamente')),
+        const SnackBar(
+          content: Text(
+            'Mensaje enviado correctamente!',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+        ),
       );
       _nameController.clear();
       _messageController.clear();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al enviar el mensaje: ${response.body}')),
+        SnackBar(
+          content: Text(
+            'Error al enviar el mensaje: ${response.body}',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -68,119 +80,240 @@ class _ContactScreenState extends State<ContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contacto'),
-        backgroundColor: Colors.blueGrey,
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Contáctanos',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueGrey.shade800, Colors.blueGrey.shade500],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Hero Section
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.blueGrey.shade50,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueGrey.shade100,
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Icon(
+                    Icons.restaurant_menu,
+                    size: 60,
+                    color: Colors.blueGrey.shade700,
+                  ),
+                  const SizedBox(height: 15),
                   const Text(
-                    'Contáctanos',
+                    '¡Estamos aquí para ayudarte!',
                     style: TextStyle(
-                      fontSize: 26,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
-                  const ListTile(
-                    leading: Icon(Icons.location_on, color: Colors.blueGrey),
-                    title: Text('Calle Principal #123, Ciudad Restaurante'),
-                  ),
-                  const ListTile(
-                    leading: Icon(Icons.phone, color: Colors.blueGrey),
-                    title: Text('+34 600 123 456'),
-                  ),
-                  const ListTile(
-                    leading: Icon(Icons.email, color: Colors.blueGrey),
-                    title: Text('contacto@restaurante.com'),
-                  ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 10),
                   const Text(
-                    'También puedes enviarnos un mensaje:',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Tu nombre',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person, color: Colors.blueGrey),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Por favor, ingresa tu nombre';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _messageController,
-                    decoration: const InputDecoration(
-                      labelText: 'Tu mensaje',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.message, color: Colors.blueGrey),
-                    ),
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Por favor, ingresa un mensaje';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.send),
-                      label: const Text('Enviar'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueGrey,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 12,
-                        ),
-                        textStyle: const TextStyle(fontSize: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: _submit,
-                    ),
+                    'No dudes en contactarnos para reservas, eventos o cualquier consulta.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
-          ),
+            const SizedBox(height: 30),
+
+            // Contact Information
+            Card(
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Encuéntranos en:',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey.shade700,
+                      ),
+                    ),
+                    const Divider(height: 25, thickness: 1),
+                    _buildContactInfoTile(
+                      Icons.location_on,
+                      'Calle Principal #123, Ciudad Restaurante',
+                    ),
+                    _buildContactInfoTile(Icons.phone, '+34 600 123 456'),
+                    _buildContactInfoTile(
+                      Icons.email,
+                      'contacto@restaurante.com',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            // Contact Form
+            Card(
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Envíanos un mensaje:',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueGrey.shade700,
+                        ),
+                      ),
+                      const Divider(height: 25, thickness: 1),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: _inputDecoration('Tu Nombre', Icons.person),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Por favor, ingresa tu nombre';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 15),
+                      TextFormField(
+                        controller: _messageController,
+                        decoration: _inputDecoration(
+                          'Tu Mensaje',
+                          Icons.message,
+                        ),
+                        maxLines: 5,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Por favor, ingresa un mensaje';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                      Center(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.send, color: Colors.white),
+                            label: const Text(
+                              'Enviar Mensaje',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal.shade500,
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 5,
+                            ),
+                            onPressed: _submit,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: Container(
-        height: 50,
-        color: Colors.blueGrey.shade100,
+        height: 60,
+        color: Colors.blueGrey.shade900,
         alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Text(
           '© 2025 Restaurante Vazquez Tapas. Todos los derechos reservados.',
+          textAlign: TextAlign.center,
           style: TextStyle(
-            color: Colors.blueGrey.shade700,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+            color: Colors.blueGrey.shade200,
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
           ),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.blueGrey.shade600),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      prefixIcon: Icon(icon, color: Colors.blueGrey.shade500),
+      filled: true,
+      fillColor: Colors.blueGrey.shade50,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blueGrey.shade200, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.teal.shade400, width: 2),
+      ),
+    );
+  }
+
+  Widget _buildContactInfoTile(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.teal.shade600, size: 28),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 17, color: Colors.blueGrey.shade800),
+            ),
+          ),
+        ],
       ),
     );
   }

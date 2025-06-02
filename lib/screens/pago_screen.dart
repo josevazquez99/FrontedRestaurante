@@ -153,12 +153,21 @@ class _PagoScreenState extends State<PagoScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              title: Text('Seleccione tipo de entrega'),
+              title: Text(
+                'Seleccione tipo de entrega',
+                style: TextStyle(
+                  color: Colors.blueGrey.shade800,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RadioListTile<String>(
-                    title: Text('Servir a mesa'),
+                    title: Text(
+                      'Servir a mesa',
+                      style: TextStyle(color: Colors.blueGrey.shade700),
+                    ),
                     value: 'mesa',
                     groupValue: tipoEntregaSeleccionado,
                     onChanged: (value) {
@@ -166,19 +175,39 @@ class _PagoScreenState extends State<PagoScreen> {
                         tipoEntregaSeleccionado = value;
                       });
                     },
+                    activeColor: Colors.teal,
                   ),
                   if (tipoEntregaSeleccionado == 'mesa')
-                    TextFormField(
-                      controller: _numeroMesaController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Número de mesa',
-                        border: OutlineInputBorder(),
-                        hintText: 'Ejemplo: 5',
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, right: 8.0),
+                      child: TextFormField(
+                        controller: _numeroMesaController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Número de mesa',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          hintText: 'Ejemplo: 5',
+                          prefixIcon: Icon(
+                            Icons.table_bar,
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (tipoEntregaSeleccionado == 'mesa' &&
+                              (value == null || value.isEmpty)) {
+                            return 'Por favor, ingrese el número de mesa';
+                          }
+                          return null;
+                        },
                       ),
                     ),
                   RadioListTile<String>(
-                    title: Text('Recoger'),
+                    title: Text(
+                      'Recoger en local',
+                      style: TextStyle(color: Colors.blueGrey.shade700),
+                    ),
                     value: 'recoger',
                     groupValue: tipoEntregaSeleccionado,
                     onChanged: (value) {
@@ -186,6 +215,7 @@ class _PagoScreenState extends State<PagoScreen> {
                         tipoEntregaSeleccionado = value;
                       });
                     },
+                    activeColor: Colors.teal,
                   ),
                 ],
               ),
@@ -194,7 +224,10 @@ class _PagoScreenState extends State<PagoScreen> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('Cancelar'),
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.blueGrey),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -221,7 +254,11 @@ class _PagoScreenState extends State<PagoScreen> {
                       _numeroMesaController.text.trim(),
                     );
                   },
-                  child: Text('Confirmar'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                  child: Text(
+                    'Confirmar',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             );
@@ -274,9 +311,15 @@ class _PagoScreenState extends State<PagoScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 10),
-                Text('Validando tarjeta...'),
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                ),
+                SizedBox(height: 15),
+                Text(
+                  'Validando tarjeta y procesando pedido...',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.blueGrey.shade700),
+                ),
               ],
             ),
           ),
@@ -302,16 +345,33 @@ class _PagoScreenState extends State<PagoScreen> {
         context: context,
         builder:
             (context) => AlertDialog(
-              title: Text('Pago Exitoso'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green,
+                    size: 30,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    '¡Pago Exitoso!',
+                    style: TextStyle(color: Colors.green.shade700),
+                  ),
+                ],
+              ),
               content: Text(
-                'Gracias por tu compra. Tu pedido ha sido procesado.',
+                'Gracias por tu compra. Tu pedido ha sido procesado con éxito y está en camino.',
+                style: TextStyle(fontSize: 16, color: Colors.blueGrey.shade700),
               ),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },
-                  child: Text('Aceptar'),
+                  child: Text('Aceptar', style: TextStyle(color: Colors.teal)),
                 ),
               ],
             ),
@@ -340,130 +400,228 @@ class _PagoScreenState extends State<PagoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Procesar Pago'),
-        backgroundColor: Colors.blueGrey,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Finalizar Pedido',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueGrey.shade800, Colors.blueGrey.shade500],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Colors.white),
             onPressed: () {
               logoutUser(context);
             },
+            tooltip: 'Cerrar sesión',
           ),
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(25.0),
         child:
             _procesandoPago
-                ? Center(child: CircularProgressIndicator())
-                : Form(
-                  key: _formKey,
+                ? Center(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.credit_card, size: 100, color: Colors.green),
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                      ),
                       SizedBox(height: 20),
                       Text(
-                        'Ingrese los datos de su tarjeta',
+                        'Procesando su pago, por favor espere...',
                         style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.blueGrey.shade700,
                         ),
                         textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 20),
-                      TextFormField(
-                        controller: _numeroTarjetaController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Número de tarjeta',
-                          border: OutlineInputBorder(),
-                          hintText: '1234 5678 9012 3456',
-                        ),
-                        maxLength: 19,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingrese el número de tarjeta';
-                          }
-                          if (value.replaceAll(' ', '').length != 16) {
-                            return 'El número de tarjeta debe tener 16 dígitos';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 15),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _fechaExpiracionController,
-                              keyboardType: TextInputType.datetime,
-                              decoration: InputDecoration(
-                                labelText: 'Fecha de expiración',
-                                border: OutlineInputBorder(),
-                                hintText: 'MM/AA',
-                              ),
-                              maxLength: 5,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Ingrese la fecha de expiración';
-                                }
-                                final regex = RegExp(
-                                  r'^(0[1-9]|1[0-2])\/?([0-9]{2})$',
-                                );
-                                if (!regex.hasMatch(value)) {
-                                  return 'Formato inválido MM/AA';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          SizedBox(width: 15),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _cvvController,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText: 'CVV',
-                                border: OutlineInputBorder(),
-                                hintText: '123',
-                              ),
-                              maxLength: 3,
-                              obscureText: true,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Ingrese el CVV';
-                                }
-                                if (value.length != 3) {
-                                  return 'El CVV debe tener 3 dígitos';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 30),
-                      Text(
-                        'Total a pagar: ${widget.total.toStringAsFixed(2)} €',
-                        style: TextStyle(fontSize: 20),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 30),
-                      ElevatedButton.icon(
-                        onPressed: mostrarDialogoEntrega,
-                        icon: Icon(Icons.check_circle),
-                        label: Text('Finalizar Pago'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                          textStyle: TextStyle(fontSize: 16),
-                        ),
                       ),
                     ],
                   ),
+                )
+                : SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.shade50,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: Colors.teal.shade200),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.credit_card,
+                                size: 50,
+                                color: Colors.teal.shade700,
+                              ),
+                              SizedBox(width: 15),
+                              Text(
+                                'Pago con Tarjeta',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.teal.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 30),
+                        TextFormField(
+                          controller: _numeroTarjetaController,
+                          keyboardType: TextInputType.number,
+                          decoration: _inputDecoration(
+                            'Número de Tarjeta',
+                            Icons.credit_card,
+                            '1234 5678 9012 3456',
+                          ),
+                          maxLength: 19,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingrese el número de tarjeta';
+                            }
+                            if (value.replaceAll(' ', '').length != 16) {
+                              return 'El número de tarjeta debe tener 16 dígitos';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _fechaExpiracionController,
+                                keyboardType: TextInputType.datetime,
+                                decoration: _inputDecoration(
+                                  'Fecha de Exp.',
+                                  Icons.calendar_today,
+                                  'MM/AA',
+                                ),
+                                maxLength: 5,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Ingrese la fecha de expiración';
+                                  }
+                                  final regex = RegExp(
+                                    r'^(0[1-9]|1[0-2])\/?([0-9]{2})$',
+                                  );
+                                  if (!regex.hasMatch(value)) {
+                                    return 'Formato inválido MM/AA';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 20),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _cvvController,
+                                keyboardType: TextInputType.number,
+                                decoration: _inputDecoration(
+                                  'CVV',
+                                  Icons.lock_outline,
+                                  '123',
+                                ),
+                                maxLength: 3,
+                                obscureText: true,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Ingrese el CVV';
+                                  }
+                                  if (value.length != 3) {
+                                    return 'El CVV debe tener 3 dígitos';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 40),
+                        Container(
+                          padding: EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            color: Colors.blueGrey.shade50,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(color: Colors.blueGrey.shade200),
+                          ),
+                          child: Text(
+                            'Total a pagar: ${widget.total.toStringAsFixed(2)} €',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade700,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(height: 30),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: mostrarDialogoEntrega,
+                            icon: Icon(Icons.check_circle, color: Colors.white),
+                            label: Text(
+                              'Finalizar Pago',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal.shade600,
+                              padding: EdgeInsets.symmetric(vertical: 18),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              elevation: 5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon, String hint) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.blueGrey.shade600),
+      prefixIcon: Icon(icon, color: Colors.blueGrey.shade500),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      filled: true,
+      fillColor: Colors.blueGrey.shade50,
+      hintText: hint, // Correctly placed hintText
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blueGrey.shade200, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.teal.shade400, width: 2),
       ),
     );
   }

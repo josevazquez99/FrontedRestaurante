@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "471548650694",
+    "project_id": "flutterrestaurante-eddd3",
+    "storage_bucket": "flutterrestaurante-eddd3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:471548650694:android:dd9b129b529066a3c223c7",
+        "android_client_info": {
+          "package_name": "com.example.restaurante_flutter_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "471548650694-hq4ikqvkue9sc2sqn9sm9dav6sdvkml0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnp20iPz8oQknGcEUGPq8IAg1gLVGvKFk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "471548650694-hq4ikqvkue9sc2sqn9sm9dav6sdvkml0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "471548650694-tllfd3s1qsb55tu025q1uol2fcvlhk7o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.restauranteFlutterApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
